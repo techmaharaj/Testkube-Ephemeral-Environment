@@ -3,7 +3,7 @@ on:
   pull_request: 
 
 jobs:
-  Testkube Test:
+  testkube-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
