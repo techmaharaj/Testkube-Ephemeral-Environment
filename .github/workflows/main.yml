@@ -1,0 +1,46 @@
+name: Ephemeral Test Using Testkube
+on:
+  pull_request: 
+
+jobs:
+  create-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        
+      - name: Kind Cluster
+        uses: helm/kind-action@v1.9.0
+
+      - name: Deploy Nginx
+        run: |
+          kubectl apply -f nginx-deployment.yaml
+
+      - name: Setup Testkube with Helm
+        run: |
+          helm repo add kubeshop https://kubeshop.github.io/helm-charts; 
+
+      - name: Configure Testkube Agent
+        run: |
+          helm upgrade --install --reuse-values --create-namespace testkube \
+            kubeshop/testkube \
+            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
+            --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
+            --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
+            --set testkube-api.minio.enabled=false \
+            --set mongodb.enabled=false \
+            --set testkube-dashboard.enabled=false \
+            --set testkube-api.cloud.url=agent.testkube.io:443 \
+            --namespace testkube
+
+      - name: Check Pods Status
+        run: |
+          kubectl get pods --all-namespaces -o wide
+          POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
+          kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=100s
+
+      - name: Run Testkube Test
+        uses: kubeshop/setup-testkube@v1        
+      - run: |
+          testkube create test --name curl-nginx-test --type curl/test --update --test-content-type git-file --git-uri https://github.com/techmaharaj/Testkube-Ephemeral-Environment.git --git-branch main --git-path curl-test.json
+          testkube run test curl-nginx-test -f
