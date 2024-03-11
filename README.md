@@ -16,7 +16,7 @@ For this example, we'll test a simple nginx application for a valid response. In
 
 On every new PR that is raised in the repo, the workflow will execute performing the following steps in order:
 
-1. Spin up a new cluster using GitHub's Kind action.
+1. Spin up a new cluster using [GitHub's Kind action](https://github.com/marketplace/actions/kind-cluster).
 2. Deploy our nginx application.
 3. Setup Testkube on this cluster using Helm.
 4. Configure the Testkube Agent using the tokens.
