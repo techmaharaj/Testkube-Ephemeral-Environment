@@ -6,7 +6,7 @@ This example shows how to perform testing using Testkube in ephemeral envrionmen
 
 For this example, we'll test a simple nginx application for a valid response. In order to do this in an ephemeral environment, below are the steps that we'll perform:
 
-1. Create an environment on Testkube Pro and note down the tokens for org_id, env_id and access_token.
+1. Create a [new environment on Testkube Pro](https://docs.testkube.io/testkube-pro/articles/environment-management/#creating-a-new-environment) and note down the tokens for org_id, env_id and access_token.
 2. Create environment variables for the repository in GitHub and save these tokens.
 3. Create a `nginx-deployment.yaml` file that has the definition for the nginx application that we want to deploy.
 4. Create a `curl-test.json` file that has the code to test our nginx application.
