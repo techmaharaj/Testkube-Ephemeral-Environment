@@ -1,0 +1,9 @@
+{
+    "command": [
+      "curl",
+      "http://nginx-service.default.svc.cluster.local",
+      "-H",
+      "'Accept: text/html'"
+    ],
+    "expected_status": "200"
+  }
