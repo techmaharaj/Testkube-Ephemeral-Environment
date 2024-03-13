@@ -1,7 +1,7 @@
 {
     "command": [
       "curl",
-      "http://nginx-service.default.svc.cluster.local",
+      "$NGINX_URL",
       "-H",
       "'Accept: text/html'"
     ],
