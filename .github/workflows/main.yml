@@ -12,7 +12,7 @@ jobs:
       - name: Kind Cluster
         uses: helm/kind-action@v1.9.0
 
-      - name: Deploy Nginx
+      - name: Deploy Sample Application
         run: |
           kubectl apply -f nginx-deployment.yaml
 
@@ -43,4 +43,4 @@ jobs:
         uses: kubeshop/setup-testkube@v1        
       - run: |
           testkube create test --name curl-nginx-test --type curl/test --update --test-content-type git-file --git-uri https://github.com/techmaharaj/Testkube-Ephemeral-Environment.git --git-branch main --git-path curl-test.json
-          testkube run test curl-nginx-test -f
+          testkube run test curl-nginx-test -f --env "NGINX_URL="http://nginx-service.default.svc.cluster.local"
