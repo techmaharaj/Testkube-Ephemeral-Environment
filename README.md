@@ -23,3 +23,4 @@ On every new PR that is raised in the repo, the workflow will execute performing
 5. Wait for the Testkube API Server to be up and running.
 6. Execute the test on the cluster, fetch and display the results.
 7. Destroy the cluster.
+8. lets test 
