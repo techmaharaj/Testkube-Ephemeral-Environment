@@ -1,6 +1,7 @@
 name: Ephemeral Test Using Testkube
 on:
-  pull_request: 
+  push:
+    branches: [ "main" ]
 
 jobs:
   testkube-test:
@@ -42,5 +43,5 @@ jobs:
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
       - run: |
-          testkube create testworkflow --name k6-kubeshop-test2 -f https://github.com/cerebro1/Testkube-Ephemeral-Environment/blob/main/k6/testkube.js --update
+          testkube create testworkflow --name k6-kubeshop-test2 -f k6/testkube.js --update
           testkube run test curl-nginx-test -f --variable "NGINX_URL=http://nginx-service.default.svc.cluster.local"
