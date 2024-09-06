@@ -42,5 +42,5 @@ jobs:
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
       - run: |
-          testkube create test --name curl-nginx-test --type curl/test --update --test-content-type git-file --git-uri https://github.com/techmaharaj/Testkube-Ephemeral-Environment.git --git-branch main --git-path curl-test.json
+          testkube create testworkflow --name k6-kubeshop-test2 -f https://github.com/cerebro1/Testkube-Ephemeral-Environment/blob/main/k6/testkube.js --update
           testkube run test curl-nginx-test -f --variable "NGINX_URL=http://nginx-service.default.svc.cluster.local"
