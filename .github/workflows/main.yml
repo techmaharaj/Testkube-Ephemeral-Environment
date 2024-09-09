@@ -20,9 +20,11 @@ jobs:
       - name: Setup Testkube with Helm
         run: |
           helm repo add testkubeenterprise https://kubeshop.github.io/testkube-cloud-charts
+          helm show values testkubeenterprise/testkube-enterprise > values.yaml
+
       - name: Configure Testkube Agent
         run: |
-          helm upgrade --install --reuse-values --create-namespace --namespace testkube testkube testkubeenterprise/testkube-enterprise \
+          helm upgrade --install --reuse-values --create-namespace --namespace testkube -f values.yaml testkube testkubeenterprise/testkube-enterprise \
             --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
             --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
             --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
