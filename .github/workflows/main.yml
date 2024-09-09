@@ -19,19 +19,20 @@ jobs:
 
       - name: Setup Testkube with Helm
         run: |
-          helm repo add testkubeenterprise https://kubeshop.github.io/testkube-cloud-charts
-          helm show values testkubeenterprise/testkube-enterprise > values.yaml
+          helm repo add kubeshop https://kubeshop.github.io/helm-charts; 
 
       - name: Configure Testkube Agent
         run: |
-          helm upgrade --install --reuse-values --create-namespace --namespace testkube -f values.yaml testkube testkubeenterprise/testkube-enterprise \
+          helm upgrade --install --reuse-values --create-namespace testkube \
+            kubeshop/testkube \
             --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
             --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
             --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
             --set testkube-api.minio.enabled=false \
             --set mongodb.enabled=false \
             --set testkube-dashboard.enabled=false \
-            --set testkube-api.cloud.url=agent.testkube.io:443
+            --set testkube-api.cloud.url=agent.testkube.io:443 \
+            --namespace testkube
 
       - name: Check Testkube Version and Pods Status
         run: |
@@ -39,6 +40,7 @@ jobs:
           testkube version
           kubectl get pods --all-namespaces -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
+          kubectl describe pod $POD_NAME -n testkube
           kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=200s
 
       - name: Run Testkube Test
