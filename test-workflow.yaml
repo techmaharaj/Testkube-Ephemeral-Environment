@@ -21,5 +21,6 @@ spec:
       shell: |
         k6 run testkube.js
       artifacts:
+        workingDir: /data
         paths:
           - '*.html'
