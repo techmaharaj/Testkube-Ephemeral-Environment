@@ -39,10 +39,8 @@ jobs:
           kubectl get pods -n testkube -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
           sleep 100
-          kubectl describe pod $POD_NAME -n testkube
-          sleep 100
-          kubectl describe pod $POD_NAME -n testkube
-          kubectl logs -f -p $POD_NAME -n testkube
+          kubectl get pods -n testkube -o wide
+          kubectl wait --for=condition=Running pod/$POD_NAME -n testkube --timeout=100s
 
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
