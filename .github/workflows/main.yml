@@ -1,7 +1,6 @@
 name: Ephemeral Test Using Testkube
 on:
-  push:
-    branches: [ "main" ]
+  pull_request: 
 
 jobs:
   testkube-test:
