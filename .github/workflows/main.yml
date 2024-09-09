@@ -45,5 +45,5 @@ jobs:
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
       - run: |
-          testkube create testworkflow --name k6-kubeshop-test-file-remote -f k6/testkube.js   
+          testkube create testworkflow --name k6-kubeshop-test-file-remote -f test-workflow.yaml   
           testkube run tw k6-kubeshop-test-file-remote -f --variable "NGINX_URL=http://nginx-service.default.svc.cluster.local"
