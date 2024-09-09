@@ -36,11 +36,12 @@ jobs:
 
       - name: Check Testkube Version and Pods Status
         run: |
-          kubectl get pods --all-namespaces -o wide
+          kubectl get pods -n testkube -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
+          sleep 100
           kubectl describe pod $POD_NAME -n testkube
-          kubectl logs -f -p $POD_NAME -n testkube
-          kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=200s
+          sleep 100
+          kubectl describe pod $POD_NAME -n testkube
           kubectl logs -f -p $POD_NAME -n testkube
 
       - name: Run Testkube Test
