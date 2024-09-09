@@ -39,6 +39,7 @@ jobs:
           kubectl get pods --all-namespaces -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
           kubectl describe pod $POD_NAME -n testkube
+          kubectl logs -f -p $POD_NAME -n testkube
           kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=200s
           kubectl logs -f -p $POD_NAME -n testkube
 
