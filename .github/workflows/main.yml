@@ -42,7 +42,12 @@ jobs:
           kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=50s
 
       - name: Run Testkube Test
-        uses: kubeshop/setup-testkube@v1        
+        uses: kubeshop/setup-testkube@v1
+        with:
+          organization: ${{ secrets.TESTKUBE_ORG_ID }}
+          environment: ${{ secrets.TESTKUBE_ENV_ID }}
+          token: ${{ secrets.TESTKUBE_API_TOKEN }}
+
       - run: |
           testkube create testworkflow --name k6-actions -f test-workflow.yaml   
           testkube run tw k6-actions
