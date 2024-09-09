@@ -1,7 +1,6 @@
 name: Ephemeral Test Using Testkube
 on:
-  push:
-    branches: [ "main" ]
+  pull_request: 
 
 jobs:
   testkube-test:
@@ -49,5 +48,5 @@ jobs:
           token: ${{ secrets.TESTKUBE_API_TOKEN }}
 
       - run: |
-          testkube create testworkflow --name k6-actions -f test-workflow.yaml   
+          testkube create testworkflow --name k6-actions -f test-workflow.yaml --update   
           testkube run tw k6-actions
