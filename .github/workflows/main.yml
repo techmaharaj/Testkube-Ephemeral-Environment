@@ -23,6 +23,7 @@ jobs:
 
       - name: Configure Testkube Agent
         run: |
+          helm repo update
           helm upgrade --install --reuse-values --create-namespace testkube \
             kubeshop/testkube \
             --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
