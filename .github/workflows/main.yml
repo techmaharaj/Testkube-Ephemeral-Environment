@@ -26,7 +26,7 @@ jobs:
           helm repo update
           helm upgrade --install --reuse-values --create-namespace testkube \
             kubeshop/testkube \
-            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
+            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_AGENT }} \
             --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
             --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
             --set testkube-api.minio.enabled=false \
