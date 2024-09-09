@@ -38,7 +38,7 @@ jobs:
         run: |
           kubectl get pods -n testkube -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
-          sleep 100
+          sleep 350
           kubectl get pods -n testkube -o wide
           
 
