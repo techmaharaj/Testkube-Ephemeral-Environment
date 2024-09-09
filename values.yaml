@@ -1,0 +1,687 @@
+# Default values for testkube-enterprise.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  # -- Run Testkube in enterprise mode (enables enterprise features)
+  enterpriseMode: true
+  # -- Toggle whether to enable offline license activation in Enterprise mode
+  enterpriseOfflineAccess: false
+  # -- Specifies the enterprise license key, when using an offline license use `enterpriseLicenseSecretRef` and leave this field empty.
+  enterpriseLicenseKey: ""
+  # -- This field is deprecated. To specify an offline license file use `enterpriseLicenseSecretRef`.
+  enterpriseLicenseFile: ""
+  # -- Enterprise license file secret reference. Place the license key under the key `LICENSE_KEY` key in the secret, and in case of an offline license place the license file under the key `license.lic` in the same secret. Make sure that the license key file does not have any new line characters at the end of the file.
+  enterpriseLicenseSecretRef: ""
+  # -- Domain under which endpoints are exposed
+  domain: ""
+  # -- UI subdomain which get prepended to the domain
+  uiSubdomain: "dashboard"
+  # -- Different UI subdomain which gets prepended to the domain. May be used for the redirect from your actual uiSubdomain endpoint. Works is ingressRedirect option is enabled.
+  redirectSubdomain: "app"
+  # -- REST API subdomain which get prepended to the domain
+  restApiSubdomain: "api"
+  # -- gRPC API subdomain which get prepended to the domain
+  grpcApiSubdomain: "agent"
+  # -- Websocket API subdomain which get prepended to the domain
+  websocketApiSubdomain: "websockets"
+  # -- Storage API subdomain which get prepended to the domain
+  storageApiSubdomain: "storage"
+  # -- TLS certificate provider. Set to "cert-manager" for integration with cert-manager or leave empty for other methods
+  certificateProvider: "cert-manager"
+  certManager:
+    # -- Certificate Issuer ref (only used if `provider` is set to `cert-manager`)
+    issuerRef: ""
+  # -- Custom CA to use as a trusted CA during TLS connections. Specify a secret with the PEM encoded CA under the ca.crt key.
+  customCaSecretRef: ""
+  # -- Image pull secrets to use for testkube-cloud-api and testkube-cloud-ui
+  imagePullSecrets: []
+  # -- Global image registry to be prepended for to all images (usually defined in parent chart)
+  imageRegistry: ""
+  ingress:
+    # -- Global toggle whether to create Ingress resources
+    enabled: true
+  dex:
+    # -- Global Dex issuer url which is configured both in Dex and API
+    issuer: ""
+  # -- Common labels which will be added to all resources
+  labels: &common_labels {}
+  ## Global MongoDB configuration for Testkube Pro
+  mongo: &global_mongo_config
+    # -- Mongo DSN connection string
+    dsn: "mongodb://testkube-enterprise-mongodb:27017"
+    # -- Mongo DSN connection string secret ref (secret must contain key MONGO_DSN) (default is `mongo-dsn`)
+    dsnSecretRef: ""
+    # -- Mongo database name
+    database: "testkubeEnterpriseDB"
+    # -- Mongo read preference (primary|primaryPreferred|secondary|secondaryPreferred|nearest)
+    readPreference: secondaryPreferred
+    # -- Allow or prohibit writing temporary files on disk when a pipeline stage exceeds the 100 megabyte limit.
+    allowDiskUse: false
+  ## Global NATS configuration for Testkube Pro
+  nats: &global_nats_config
+    # -- NATS URI
+    uri: "nats://testkube-enterprise-nats:4222"
+  ## Global S3 configuration for Testkube Pro
+  storage:
+    # -- S3 bucket in which Test Artifacts & Logs will be stored
+    outputsBucket: "testkube-cloud-outputs"
+    # -- Endpoint to a S3 compatible storage service (without protocol)
+    endpoint: "{{ .Values.global.storageApiSubdomain }}.{{ .Values.global.domain }}"
+    # -- S3 region
+    region: ""
+    # -- Toggle whether to use HTTPS when connecting to the S3 server
+    secure: true
+    # -- Toggle whether to skip verifying TLS certificates
+    skipVerify: false
+    # -- S3 Access Key ID
+    accessKeyId: "testkube-enterprise"
+    # -- S3 Secret Access Key
+    secretAccessKey: "t3stkub3-3nt3rpr1s3"
+    # -- S3 Token
+    token: ""
+    # -- Credentials secret ref (secret should contain keys: root-user, root-password, token) (default is `testkube-cloud-minio-secret`)
+    credsSecretRef: ""
+  tls: {}
+  # -- Toggle whether to globally skip certificate verification
+  #skipVerify: true
+# Testkube requires a variety of secrets to operate.
+# Any secret not provided manually will be automatically generated with a random value by the shared secret job.
+sharedSecretGenerator:
+  # -- Toggle whether to enable the Shared Secret Generator Job
+  enabled: false
+  # -- Pod Security Context for the Shared Secret Generator Job
+  securityContext: {}
+  # -- Container Security Context for the Shared Secret Generator Job
+  containerSecurityContext: {}
+  # -- Resources for the Shared Secret Generator Job
+  resources: {}
+  image:
+    registry: docker.io
+    repository: bitnami/kubectl
+    tag: 1.28.2
+## MinIO chart parameters
+minio:
+  # -- Toggle whether to install MinIO
+  enabled: true
+  fullnameOverride: &minioFullnameOverride testkube-enterprise-minio
+  # -- Common labels which will be added to all MinIO resources
+  commonLabels: *common_labels
+  # Uncomment if you want to provide different image settings
+  # image:
+  # registry: docker.io
+  # repository: bitnami/minio
+  # tag: 2023.11.20-debian-11-r0
+  # digest: ""
+  # pullPolicy: IfNotPresent
+  # Uncomment if you want to provide different client image settings
+  # clientImage:
+  # registry: docker.io
+  # repository: bitnami/minio-client
+  # tag: 2023.11.20-debian-11-r0
+  # digest: ""
+  # -- Set resources requests and limits for MinIO
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  auth:
+    # -- MinIO root username (access key)
+    rootUser: "testkube-enterprise"
+    # -- MinIO root password (secret key)
+    rootPassword: "t3stkub3-3nt3rpr1s3"
+    # -- Use existing secret for credentials details (`auth.rootUser` and `auth.rootPassword` will be ignored and picked up from this secret). The secret has to contain the keys `root-user` and `root-password`)
+    existingSecret: ""
+  tls:
+    # -- Enable tls in front of the container
+    enabled: false
+    # -- Generate automatically self-signed TLS certificates
+    autoGenerated: false
+    # -- Name of an existing secret holding the certificate information
+    existingSecret: ""
+  # -- Disable MinIO Web UI
+  disableWebUI: false
+  extraEnvVars: []
+  #  - name: FOO
+  #    value: "bar"
+
+  # -- Node labels for pod assignment.
+  nodeSelector: {}
+  # ref: https://cloud.google.com/kubernetes-engine/docs/how-to/prepare-arm-workloads-for-deployment#node-affinity-multi-arch-arm
+  # -- Tolerations to schedule a workload to nodes with any architecture type. Required for deployment to GKE cluster.
+  tolerations: []
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  # Note: podAffinityPreset, podAntiAffinityPreset, and nodeAffinityPreset will be ignored when it's set
+  # -- Affinity for pod assignment.
+  affinity: {}
+  # MinIO Pod Security Context
+  podSecurityContext:
+    # -- Toggle whether to render the pod security context
+    enabled: true
+    fsGroup: 1001
+  # MinIO container security context
+  containerSecurityContext:
+    # -- Toggle whether to render the container security context
+    enabled: true
+    runAsUser: 1001
+    runAsNonRoot: true
+    privileged: false
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## - OpenShift Configuration. Uncomment this section to deploy on Openshift cluster
+  #  podSecurityContext:
+  #    fsGroup: 1001010000
+  #  containerSecurityContext:
+  #    enabled: true
+  #    runAsUser: 1001010000
+  #    runAsNonRoot: true
+  metrics:
+    serviceMonitor:
+      # -- Toggle whether to create ServiceMonitor resource for scraping metrics using Prometheus Operator
+      enabled: false
+  customIngress:
+    # -- Toggle whether to enable the MinIO Ingress
+    enabled: true
+    # -- Additional labels to add to the MinIO Ingress resource
+    labels: {}
+    # -- Additional annotations to add to the MinIO Ingress resource
+    annotations: {}
+    # -- Hostname for which to create rules and TLS certificates (if omitted, the host will be generated using the global subdomain and `domain` values)
+    host: ""
+    # -- MinIO endpoint used in the Ingress
+    endpoint: *minioFullnameOverride
+    # -- Ingress class name
+    className: nginx
+    tls:
+      # -- TLS secret name which contains the certificate files
+      tlsSecret: testkube-enterprise-minio-tls
+## Testkube Cloud API chart parameters
+testkube-cloud-api:
+  fullnameOverride: testkube-enterprise-api
+  image:
+    # -- If defined, it will prepend the registry to the image name, if not, default docker.io will be prepended
+    registry: ""
+    repository: kubeshop/testkube-enterprise-api
+    tag: 1.10.55
+  ## Init block defines settings for the dependency check containers
+  init:
+    # -- Toggle whether to enable the dependency check containers
+    enabled: false
+    mongo:
+      image:
+        # -- MongoSH image repository
+        repository: alpine/mongosh
+        # -- MongoSH image tag
+        tag: 2.0.2
+        # -- MongoSH image pull policy
+        pullPolicy: IfNotPresent
+  # -- Specifies the path to the directory (skip the trailing slash) where CA certificates should be mounted. The mounted file should container a PEM encoded CA certificate.
+  customCaDirPath: ""
+  # -- Specifies the path where the license key should be mounted.
+  enterpriseLicenseKeyPath: /testkube/license.key
+  # -- Specifies the path where the license file should be mounted.
+  enterpriseLicenseFilePath: /testkube/license.lic
+  # -- Set resources requests and limits for Testkube Api
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 1
+      memory: 512Mi
+  serviceAccount:
+    # -- Toggle whether to create a ServiceAccount resource
+    create: false
+    # -- Additional labels to add to the ServiceAccount resource
+    labels: {}
+    # -- Additional annotations to add to the ServiceAccount resource
+    annotations: {}
+    # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template
+    name: ""
+  ai:
+    secretRef: ""
+  api:
+    features:
+      # -- Toggle whether to disable personal organizations when a user signs up for the first time
+      disablePersonalOrgs: false
+      # -- Toggle whether to enable support for legacy tests (Test, TestSuite)
+      legacyTests: false
+    debug:
+      # -- Toggle whether to enable debug logs by setting the GODEBUG=http2debug=2
+      enableHttp2Logs: false
+      # -- Toggle whether to enable gRPC server logs
+      enableGrpcServerLogs: false
+    # -- External log server connection configuration
+    logServer:
+      # -- Toggle whether to enable external log server connection
+      enabled: false
+      # -- Log server address
+      grpcAddress: "testkube-enterprise-logs-service:8089"
+      # -- Log server TLS configuration secure connection
+      secure: "false"
+      # -- Log server TLS configuration skip Verify
+      skipVerify: "true"
+      # -- TLS certificate file
+      certFile: ""
+      # -- TLS key file
+      keyFile: ""
+      # -- TLS CA certificate file
+      caFile: ""
+    # -- Configure which invitation mode to use (email|auto-accept): email uses SMTP protocol to send email invites and auto-accept immediately adds them
+    inviteMode: auto-accept
+    email:
+      # -- Email to use for sending outgoing emails
+      fromEmail: ""
+      # -- Name to use for sending outgoing emails
+      fromName: ""
+    smtp:
+      # -- SMTP host
+      host: ""
+      # -- SMTP port
+      port: 587
+      # -- SMTP username
+      username: ""
+      # -- SMTP password
+      password: ""
+      # -- SMTP secret ref (secret must contain key SMTP_PASSWORD), overrides password field if defined
+      passwordSecretRef: ""
+    sendgrid:
+      # -- Sendgrid API key
+      apiKey: ""
+      # -- Secret API key secret ref (secret must contain key SENDGRID_API_KEY)
+      secretRef: ""
+    tls:
+      certManager:
+        # -- Certificate Issuer kind (only used if `provider` is set to `cert-manager`)
+        issuerKind: ClusterIssuer
+      tlsSecret: testkube-enterprise-api-tls
+    migrations:
+      # -- Toggle whether to run database migrations
+      enabled: true
+      # -- Toggle whether to enable pre-install & pre-upgrade hooks (should be disabled if mongo is installed using this chart)
+      useHelmHooks: false
+      image:
+        # -- Migrations image repository
+        repository: kubeshop/testkube-enterprise-api-migrations
+        # -- clean up finished jobs
+      ttlSecondsAfterFinished: 90
+    mongo: *global_mongo_config
+    nats: *global_nats_config
+    minio:
+      # -- Path to where a Minio credential file should be mounted
+      credsFilePath: ""
+      # -- Expiration period in days
+      expirationPeriod: 0
+      # -- If enabled, will also require a CA certificate to be provided
+      mountCACertificate: false
+      # Configure this if you want a different hostname for the presigned PUT URL (used by Agents to upload artifacts)
+      signing:
+        # -- Hostname for the presigned PUT URL
+        hostname: ""
+        # -- Toggle should the presigned URL use HTTPS
+        secure: false
+      certSecret:
+        # -- Toggle whether to mount k8s secret which contains storage client certificate (cert.crt, cert.key, ca.crt)
+        enabled: false
+        # -- Name of the storage client certificate secret
+        name: "storage-client-cert"
+        # -- Base path to mount the client certificate secret
+        baseMountPath: /etc/client-certs/storage
+        # -- Path to client certificate file
+        certFile: "cert.crt"
+        # -- Path to client certificate key file
+        keyFile: "cert.key"
+        # -- Path to ca file (used for self-signed certificates)
+        caFile: "ca.crt"
+    agent:
+      healthcheck:
+        # -- Agent healthcheck distributed mode (one of mongo|kv) - used for pods sync to run healthchecks on single pod at once
+        lock: kv
+      hide: false
+      # -- Agent host (without protocol) is used for building agent install commands (if blank, api will autogenerate it based on the value of `global.domain`)
+      host: ""
+      # -- Agent port - used for building agent install commands
+      port: 443
+      # -- Toggle whether to enable agent grpc keepalive pings
+      keepAlive: false
+    oauth:
+      # -- OAuth secret ref for OAuth configuration (secret must contain keys: OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_ISSUER_URL, OAUTH_REDIRECT_URI) (default is `testkube-cloud-oauth-secret`)
+      secretRef: ""
+      # -- OAuth Client ID for the configured static client in Dex
+      clientId: "testkube-enterprise"
+      # -- OAuth Client ID for the configured static client in Dex
+      clientSecret: "QWkVzs3nct6HZM5hxsPzwaZtq"
+      # -- If oauth.secretRef is empty (""), then oauth.redirectUri field will be used for the OAuth redirect URI
+      redirectUri: ""
+      # -- if oauth.secretRef is empty (""), then oauth.issuerUrl field will be used for the OAuth issuer URL
+      issuerUrl: ""
+      # -- Toggle whether to skip TLS verification for OAuth issuer
+      skipVerify: false
+    # -- S3 bucket in which to store logs & artifacts
+    outputsBucket: testkube-cloud-outputs
+  prometheus:
+    enabled: false
+  ingress:
+    className: nginx
+  ## Test Connection pod
+  testConnection:
+    enabled: false
+## Testkube Cloud UI chart parameters
+testkube-cloud-ui:
+  fullnameOverride: testkube-enterprise-ui
+  ui:
+    # -- Auth strategy to use (possible values: "" (default), "gitlab", "github"), setting to "" enables all auth strategies, if you use a custom Dex connector, set this to the id of the connector
+    authStrategy: ""
+  image:
+    # -- If defined, it will prepend the registry to the image name, if not, default docker.io will be prepended
+    registry: ""
+    repository: kubeshop/testkube-enterprise-ui
+    tag: 2.3.0
+  # -- Set resources requests and limits for Testkube UI
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 150m
+      memory: 128Mi
+  ingress:
+    # -- Name of the TLS secret which contains the certificate files
+    tlsSecretName: testkube-enterprise-ui-tls
+    # -- Ingress classname
+    className: nginx
+  # -- Toggle whether to enable redirect Ingress which allows having a different subdomain redirecting to the actual Dashboard UI Ingress URL
+  ingressRedirect:
+    enabled: false
+## Testkube chart parameters
+testkube-agent:
+  # -- Toggle whether to install & connect Testkube Agent in the same cluster
+  enabled: false
+## Testkube Worker Service chart parameters
+testkube-worker-service:
+  fullnameOverride: testkube-enterprise-worker-service
+  image:
+    # -- If defined, it will prepend the registry to the image name, if not, default docker.io will be prepended
+    registry: ""
+    repository: kubeshop/testkube-enterprise-worker-service
+    tag: 1.10.41
+  # -- Set resources requests and limits for Testkube Worker Service
+  resources:
+    requests:
+      cpu: 75m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  api:
+    nats: *global_nats_config
+    mongo: *global_mongo_config
+    minio:
+      # -- Path to where a Minio credential file should be mounted
+      credsFilePath: ""
+  additionalEnv:
+    USE_MINIO: true
+  # -- Specifies the path to the directory (skip the trailing slash) where CA certificates should be mounted. The mounted file should container a PEM encoded CA certificate.
+  customCaDirPath: ""
+## NATS chart parameter
+## For more configuration parameters of NATS chart please look here: https://docs.nats.io/running-a-nats-service/nats-kubernetes/helm-charts
+nats:
+  # -- Toggle whether to install NATS
+  enabled: true
+  fullnameOverride: testkube-enterprise-nats
+  # Uncomment if you want to provide a different image or pullPolicy
+  container:
+    merge:
+      # -- Set resources requests and limits for NATS container
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+  # image:
+  # repository: nats
+  # tag: 2.10.5-alpine
+  # pullPolicy: IfNotPresent
+  # registry:
+  config:
+    cluster:
+      # -- Enable cluster mode (HA)
+      enabled: true
+      # -- NATS cluster replicas
+      replicas: 3
+    jetstream:
+      # -- Toggle whether to enable JetStream (Testkube requires JetStream to be enabled, so this setting should always be on)
+      enabled: true
+      fileStore:
+        pvc:
+          enabled: true
+          size: 10Gi
+          storageClassName:
+    # -- Merge additional fields to nats config
+    # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core
+    merge:
+      # -- NATS message maximum payload size
+      max_payload: << 8MB >>
+      cluster:
+        # -- NATS cluster name
+        name: << testkube-enterprise >>
+      # -- Enable debug for NATS
+      debug: false
+    # -- Patch additional fields to nats config
+    patch: []
+  # Reloader container settings
+  reloader:
+    # -- Toggle whether to install Reloader
+    enabled: true
+    # Uncomment if you want to provide a different image or pullPolicy
+    # image:
+    # repository: natsio/nats-server-config-reloader
+    # tag: 0.13.0
+    # pullPolicy:
+    # registry:
+
+    # -- Map of additional env vars
+    env: {}
+    # -- Merge additional fields to the container
+    # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core
+    merge:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+    patch: []
+  # NATS Box container settings
+  natsBox:
+    enabled: false
+    container:
+      # -- Merge additional fields to the container
+      merge:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+    # Uncomment if you want to provide a different image or pullPolicy
+    # container:
+    # image:
+    # repository: natsio/nats-box
+    # tag: 0.14.1
+    # pullPolicy:
+    # registry:
+    ## - OpenShift Configuration. Uncomment this section to deploy on Openshift cluster
+    #    container:
+    #      image:
+    #        repository: natsio/nats-box #used to fix this: https://github.com/nats-io/nats-box/pull/66
+    #        tag: 0.14.3-nonroot
+
+    # -- Map of additional env vars
+    env: {}
+    # -- Merge additional fields to the container
+    # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core
+    merge: {}
+    # -- Patch additional fields to the container
+    patch: []
+  # Exporter container settings
+  promExporter:
+    # -- Toggle whether to install NATS exporter
+    enabled: true
+    # Uncomment if you want to provide a different image or pullPolicy
+    # image:
+    # repository: natsio/prometheus-nats-exporter
+    # tag: 0.12.0
+    # pullPolicy:
+    # registry:
+
+    # -- Map of additional env vars
+    env: {}
+    # -- Merge additional fields to the container
+    # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#container-v1-core
+    merge: {}
+    # -- Patch additional fields to the container
+    patch: []
+## MongoDB chart parameters
+## For more configuration parameters of MongoDB chart please look here: https://github.com/bitnami/charts/tree/master/bitnami/mongodb#parameters
+mongodb:
+  # -- Toggle whether to install MongoDB
+  enabled: true
+  image:
+    registry: docker.io
+    # We have forked the Bitnami image as it did not support arm64, and the
+    # zcube/bitnami-compat-mongodb image that we previously used for the demo
+    # installer is unmaintained, stuck on Mongo 6, and incompatible with the
+    # latest Bitnami charts:
+    repository: kubeshop/bitnami-mongodb
+    tag: 7.0.12
+  # -- MongoDB fullname override
+  fullnameOverride: "testkube-enterprise-mongodb"
+  # -- Common labels which will be added to all MongoDB resources
+  commonLabels: *common_labels
+  # MongoDB Auth settings
+  auth:
+    # -- Toggle whether to enable MongoDB authentication
+    enabled: false
+    # rootPassword: "123DefaultOne321"
+  # -- Set resources requests and limits for MongoDB
+  resources:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  tolerations: []
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  # -- MongoDB Pod Security Context
+  podSecurityContext: {}
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  # -- Security Context for MongoDB container
+  containerSecurityContext: {}
+  # MongoDB uses ReadWriteOnce access mode for PV. It means that the volume can be accessed by pods that reside on the same node.
+  # If during an upgrade a new Mongo pod with RollingUpdate strategy is scheduled on a different node, the upgrade will fail with the error: Volume is already used by pod.
+  # Therefore, it is required to use Recreate strategy to kill existing pods on upgrade before creating new ones.
+  updateStrategy:
+    # -- Update Strategy type
+    type: Recreate
+    ## - OpenShift Configuration. Uncomment this section to deploy on Openshift cluster
+#  podSecurityContext:
+#    fsGroup: 1001010000
+#  containerSecurityContext:
+#    enabled: true
+#    runAsUser: 1001010000
+#    runAsNonRoot: true
+## Dex chart parameters
+## For more configuration parameters of Dex chart please look here: https://github.com/dexidp/helm-charts
+dex:
+  # -- Toggle whether to install Dex
+  enabled: true
+  fullnameOverride: testkube-enterprise-dex
+  # Uncomment if you want to provide different image settings
+  # image:
+  # repository: ghcr.io/dexidp/dex
+  # tag: v2.36.0-alpine
+  # pullPolicy: IfNotPresent
+
+  # -- Common labels which will be added to all Dex resources
+  commonLabels: *common_labels
+  rbac:
+    # -- Specifies whether RBAC resources should be created.
+    # If disabled, the operator is responsible for creating the necessary resources based on the templates.
+    create: true
+    # -- Specifies which RBAC resources should be created.
+    # If disabled, the operator is responsible for creating the necessary resources (ClusterRole and RoleBinding or CRD's)
+    createClusterScoped: true
+  configSecret:
+    # -- This should be set to `false` so Dex does not create the config secret. Refer to the `createCustom` field for more info on creating config secret.
+    create: false
+    # -- Toggle whether to create a custom config secret for Dex (templates/dex-config-secret.yaml). If set to `true`, the `configTemplate` field will be used to generate the config secret.
+    createCustom: true
+    # -- The name of the secret to mount as configuration in the pod. Set `createCustom: false` and edit the secret manually to use a custom config secret.
+    name: "testkube-enterprise-dex-config"
+  # -- Configure backend for Dex internal config (more info here https://dexidp.io/docs/storage)
+  storage: {}
+  # example config for saving Dex internal data as Kubernetes CRDs
+  # type: kubernetes
+  # config:
+  # inCluster: true
+  # -- Inline Dex configuration which will be used to generate the config secret.
+  configTemplate:
+    # -- If provided, it will completely override the default config (`base` and `additionalConfig`). This is useful if you want to use a custom config file.
+    customConfig: ""
+    base: |
+      logger:
+        level: debug
+        format: json
+    # -- Additional static clients which will be appended to the dex staticClients config
+    additionalStaticClients: []
+    #  - id: testkube-cloud-local
+    #    name: Testkube Cloud - localdev
+    #    redirectURIs:
+    #      - http://localhost:8090/auth/callback
+    #    secret: some-secret
+    # -- Additional config which will be appended to the config like `staticClients`, `staticPasswords ,`connectors`...
+    additionalConfig: ""
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  # -- Security Context for Dex container
+  securityContext: {}
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  # -- Dex Pod Security Context
+  podSecurityContext: {}
+  # -- Set resources requests and limits for Dex Service
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 392Mi
+  ingress:
+    # -- Toggle whether to enable ingress for Dex
+    enabled: true
+    # -- Additional annotations for Dex ingress
+    annotations: {}
+    # -- Testkube Enterprise supports only NGINX Controller currently
+    className: nginx
+    hosts:
+      - host: "{{ .Values.global.restApiSubdomain }}.{{ .Values.global.domain }}"
+        paths:
+          - path: /idp
+            pathType: Prefix
+    tls:
+      - secretName: testkube-enterprise-api-tls
+        hosts:
+          - "{{ .Values.global.restApiSubdomain }}.{{ .Values.global.domain }}"
+

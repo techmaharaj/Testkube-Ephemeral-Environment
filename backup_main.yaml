@@ -19,33 +19,30 @@ jobs:
 
       - name: Setup Testkube with Helm
         run: |
-          helm repo add kubeshop https://kubeshop.github.io/helm-charts; 
+          helm repo add testkubeenterprise https://kubeshop.github.io/testkube-cloud-charts
+          helm show values testkubeenterprise/testkube-enterprise > values.yaml
 
       - name: Configure Testkube Agent
         run: |
-          helm upgrade --install --reuse-values --create-namespace testkube \
-            kubeshop/testkube \
+          helm upgrade --install --reuse-values --create-namespace --namespace testkube -f values.yaml testkube testkubeenterprise/testkube-enterprise \
             --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
             --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
             --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
             --set testkube-api.minio.enabled=false \
             --set mongodb.enabled=false \
             --set testkube-dashboard.enabled=false \
-            --set testkube-api.cloud.url=agent.testkube.io:443 \
-            --namespace testkube
+            --set testkube-api.cloud.url=agent.testkube.io:443
 
       - name: Check Testkube Version and Pods Status
         run: |
-          kubectl get pods -n testkube -o wide
+          echo "check testkube version sonali"
+          testkube version
+          kubectl get pods --all-namespaces -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
-          sleep 100
-          kubectl describe pod $POD_NAME -n testkube
-          sleep 100
-          kubectl describe pod $POD_NAME -n testkube
-          kubectl logs -f -p $POD_NAME -n testkube
+          kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=200s
 
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
       - run: |
           testkube create testworkflow --name k6-kubeshop-test-file-remote -f k6/testkube.js --update    
-          testkube run tw k6-kubeshop-test-file-remote -f --variable "NGINX_URL=http://nginx-service.default.svc.cluster.local"
+          testkube run tw k6-kubeshop-test2 -f --variable "NGINX_URL=http://nginx-service.default.svc.cluster.local"
