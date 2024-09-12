@@ -38,7 +38,7 @@ jobs:
         run: |
           kubectl get pods -n testkube -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
-          kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=50s
+          kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=150s
 
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1
@@ -48,5 +48,5 @@ jobs:
           token: ${{ secrets.TESTKUBE_API_TOKEN }}
 
       - run: |
-          testkube create testworkflow --name k6-actions -f test-workflow.yaml --update   
-          testkube run tw k6-actions
+          testkube create testworkflow --name k6-alpha-without-update -f test-workflow.yaml   
+          testkube run tw k6-alpha-without-update
