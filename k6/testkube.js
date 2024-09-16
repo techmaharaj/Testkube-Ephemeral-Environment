@@ -13,7 +13,7 @@ export default function () {
 
   // Check if the response time is less than 1000 milliseconds
  check(response, {
-    'Response time is less than 1000 milliseconds': (r) => r.timings.duration < 1000, // Check if response time is less than 1000 milliseconds
+    'response time is less than 1000 milliseconds': (r) => r.timings.duration < 1000, // Check if response time is less than 1000 milliseconds
   });
 
   // Add a sleep period (in this case, 1 second) between requests
