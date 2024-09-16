@@ -9,37 +9,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         
-      - name: Kind Cluster
-        uses: helm/kind-action@v1.9.0
-
-      - name: Deploy Sample Application
-        run: |
-          kubectl apply -f nginx-deployment.yaml
-
-      - name: Setup Testkube with Helm
-        run: |
-          helm repo add kubeshop https://kubeshop.github.io/helm-charts; 
-
-      - name: Configure Testkube Agent
-        run: |
-          helm repo update
-          helm upgrade --install --reuse-values --create-namespace testkube \
-            kubeshop/testkube \
-            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_AGENT }} \
-            --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
-            --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
-            --set testkube-api.minio.enabled=false \
-            --set mongodb.enabled=false \
-            --set testkube-dashboard.enabled=false \
-            --set testkube-api.cloud.url=agent.testkube.io:443 \
-            --namespace testkube
-
-      - name: Check Testkube Version and Pods Status
-        run: |
-          kubectl get pods -n testkube -o wide
-          POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
-          kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=150s
-
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1
         with:
@@ -48,5 +17,5 @@ jobs:
           token: ${{ secrets.TESTKUBE_API_TOKEN }}
 
       - run: |
-          testkube create testworkflow --name k6-actions -f test-workflow.yaml   
-          testkube run tw k6-actions
+          testkube create testworkflow --name k6-simple -f test-workflow.yaml   
+          testkube run tw k6-simple
