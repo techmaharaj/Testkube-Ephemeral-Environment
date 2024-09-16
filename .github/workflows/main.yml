@@ -17,5 +17,5 @@ jobs:
           token: ${{ secrets.TESTKUBE_API_TOKEN }}
 
       - run: |
-          testkube create testworkflow --name k6-test -f test-workflow.yaml   
-          testkube run tw k6-test
+          testkube create testworkflow --name k6-test1 -f test-workflow.yaml   
+          testkube run tw k6-test1
