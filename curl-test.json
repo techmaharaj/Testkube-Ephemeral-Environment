@@ -5,5 +5,5 @@
       "-H",
       "'Accept: text/html'"
     ],
-    "expected_status": "200"
+    "expected_status": "201"
   }
