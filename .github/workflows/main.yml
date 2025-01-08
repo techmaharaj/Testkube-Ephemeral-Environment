@@ -38,9 +38,10 @@ jobs:
           kubectl get pods --all-namespaces -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
           kubectl wait --for=condition=Ready pod/$POD_NAME -n testkube --timeout=100s
+          ls
 
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
       - run: |
-          testkube create test --name curl-nginx-test --type curl/test --update --test-content-type git-file --git-uri https://github.com/techmaharaj/Testkube-Ephemeral-Environment.git --git-branch main --git-path curl-test.json
-          testkube run test curl-nginx-test -f --variable "NGINX_URL=http://nginx-service.default.svc.cluster.local"
+          testkube create tw --name curl-sample -f test-workflow.yaml --update
+          testkube run tw curl-sample -f --config url=http://nginx-service.default.svc.cluster.local
