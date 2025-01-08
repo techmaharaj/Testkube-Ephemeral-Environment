@@ -1,0 +1,16 @@
+kind: TestWorkflow
+apiVersion: testworkflows.testkube.io/v1
+metadata:
+  name: curl-sample
+  namespace: testkube
+spec:
+  config:
+    url:
+      type: string
+  container: {}
+  steps:
+  - name: Run curl
+    container:
+      image: curlimages/curl:8.7.1
+    shell: curl {{ config.url }}
+status: {}
