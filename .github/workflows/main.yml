@@ -22,7 +22,6 @@ jobs:
 
       - name: Configure Testkube Agent
         run: |
-          helm repo update
           helm upgrade testkube kubeshop/testkube \
             --install \
             --create-namespace \
