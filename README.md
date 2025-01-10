@@ -1,6 +1,6 @@
 # Testkube Ephemeral Environment
 
-This example shows how to perform testing using Testkube in ephemeral envrionments. Everytime a new PR is raised, a new kind cluster will spin up, install Testkube, perform testing, fetch the results and destroy the cluster. 
+This example shows how to perform testing using Testkube in ephemeral environments. Everytime a new PR is raised, a new kind cluster will spin up, install Testkube, perform testing, fetch the results and destroy the cluster. 
 
 ## Setup
 
