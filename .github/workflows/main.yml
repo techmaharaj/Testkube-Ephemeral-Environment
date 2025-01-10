@@ -12,6 +12,11 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1
 
+      - name: Debug Helm
+        run: |
+          helm version
+          helm repo list
+
       - name: Deploy Sample Application
         run: |
           kubectl apply -f nginx-deployment.yaml
