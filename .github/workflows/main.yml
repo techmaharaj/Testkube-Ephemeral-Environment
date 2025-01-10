@@ -16,20 +16,21 @@ jobs:
         run: |
           kubectl apply -f nginx-deployment.yaml
 
-      - name: Setup Testkube CLI
+      - name: Setup Testkube with Helm
         run: |
-          wget -qO - https://repo.testkube.io/key.pub | sudo apt-key add -
-          echo "deb https://repo.testkube.io/linux linux main" | sudo tee -a /etc/apt/sources.list
-          sudo apt-get update
-          sudo apt-get install -y testkube
-
-      - name: Validate Testkube CLI Installation
-        run: |
-          testkube version
+          helm repo add kubeshop https://kubeshop.github.io/helm-charts; 
 
       - name: Configure Testkube Agent
         run: |
-          testkube pro init --agent-token=${{ secrets.TESTKUBE_API_TOKEN }} --org-id=${{ secrets.TESTKUBE_ORG_ID }} --env-id=${{ secrets.TESTKUBE_ENV_ID }}
+          helm repo update && helm upgrade --install --create-namespace testkube kubeshop/testkube \
+            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
+            --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
+            --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
+            --set testkube-api.minio.enabled=false \
+            --set mongodb.enabled=false \
+            --set testkube-dashboard.enabled=false \
+            --set testkube-api.cloud.url=agent.testkube.io:443 \
+            --namespace testkube
 
       - name: Check Pods Status
         run: |
