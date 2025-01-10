@@ -22,7 +22,7 @@ jobs:
 
       - name: Configure Testkube Agent
         run: |
-          helm repo update && helm upgrade --install --create-namespace testkube kubeshop/testkube \
+          helm repo update && helm upgrade testkube kubeshop/testkube --install --create-namespace \
             --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
             --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
             --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
