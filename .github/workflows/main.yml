@@ -19,19 +19,18 @@ jobs:
       - name: Setup Testkube with Helm
         run: |
           helm repo add kubeshop https://kubeshop.github.io/helm-charts; 
-
+            
       - name: Configure Testkube Agent
         run: |
-          helm upgrade --install --reuse-values --create-namespace testkube \
-            kubeshop/testkube \
-            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
-            --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
-            --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
-            --set testkube-api.minio.enabled=false \
-            --set mongodb.enabled=false \
-            --set testkube-dashboard.enabled=false \
-            --set testkube-api.cloud.url=agent.testkube.io:443 \
-            --namespace testkube
+          helm repo update && helm upgrade --install --create-namespace testkube kubeshop/testkube \
+          --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
+          --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
+          --set testkube-api.cloud.envId={{ secrets.TESTKUBE_ENV_ID }} \
+          --set testkube-api.minio.enabled=false \
+          --set mongodb.enabled=false \
+          --set testkube-dashboard.enabled=false \
+          --set testkube-api.cloud.url=agent.testkube.io:443 \
+          --namespace testkube
 
       - name: Check Pods Status
         run: |
