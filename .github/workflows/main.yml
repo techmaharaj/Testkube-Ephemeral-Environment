@@ -28,6 +28,7 @@ jobs:
           kubectl get pods --all-namespaces -o wide
           POD_NAME=$(kubectl get pods -n testkube | grep testkube-api-server | awk '{print $1}')
           sleep 100
+          ls
 
       - name: Run Testkube Test
         uses: kubeshop/setup-testkube@v1        
