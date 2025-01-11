@@ -16,20 +16,9 @@ jobs:
         run: |
           kubectl apply -f nginx-deployment.yaml
 
-      - name: Configure and Install Testkube
+      - name: Configure Testkube
         run: |
-          helm repo add kubeshop https://kubeshop.github.io/helm-charts
-          helm repo update
-          helm install testkube kubeshop/testkube \
-            --namespace testkube \
-            --create-namespace \
-            --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
-            --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
-            --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
-            --set testkube-api.minio.enabled=false \
-            --set mongodb.enabled=false \
-            --set testkube-dashboard.enabled=false \
-            --set testkube-api.cloud.url=agent.testkube.io:443
+          helm repo add kubeshop https://kubeshop.github.io/helm-charts ; helm repo update && helm upgrade --install --create-namespace testkube kubeshop/testkube --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} --set testkube-api.minio.enabled=false --set mongodb.enabled=false --set testkube-dashboard.enabled=false --set testkube-api.cloud.url=agent.testkube.io:443 --namespace testkube
 
       - name: Verify installation
         run: helm list -n testkube
