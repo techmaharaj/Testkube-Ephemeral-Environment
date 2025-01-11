@@ -23,9 +23,6 @@ jobs:
           helm install testkube kubeshop/testkube \
             --namespace testkube \
             --create-namespace \
-            --version=2.1.83 \
-            --force \
-            --atomic \
             --set testkube-api.cloud.key=${{ secrets.TESTKUBE_API_TOKEN }} \
             --set testkube-api.cloud.orgId=${{ secrets.TESTKUBE_ORG_ID }} \
             --set testkube-api.cloud.envId=${{ secrets.TESTKUBE_ENV_ID }} \
